@@ -48,3 +48,24 @@ exports.validateLogin = (_reqBody) => {
     })
     return joiSchema.validate(_reqBody);
 }
+
+exports.validateUpdate = (_reqBody) => {
+    let joiSchema = Joi.object({
+        name: Joi.string().min(2).max(100).required(),
+        email: Joi.string().min(2).max(150).email().required(),
+        password: Joi.string().min(3).max(100).required(),
+        room: Joi.string().min(1).max(10).allow("", null)
+    })
+    return joiSchema.validate(_reqBody);
+}
+
+exports.validateAdmin = (_reqBody) => {
+    let joiSchema = Joi.object({
+        name: Joi.string().min(2).max(100).required(),
+        email: Joi.string().min(2).max(150).email().required(),
+        password: Joi.string().min(3).max(100).required(),
+        room: Joi.string().min(1).max(10).allow("", null),
+        role: Joi.string().min(2).max(20).required()
+    })
+    return joiSchema.validate(_reqBody);
+}

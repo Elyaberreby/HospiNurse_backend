@@ -1,8 +1,9 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { validateUser, UserModel, validateLogin, genToken } = require("../models/userModel");
-const { authUser, auth } = require("../middlewares/auth")
+const { validateUser, UserModel, validateLogin, genToken, validateUpdate } = require("../models/userModel");
+const { authUser, auth, authAdmin } = require("../middlewares/auth");
+const { valid } = require("joi");
 const router = express.Router();
 
 router.get("/", (req, res) => {
@@ -65,11 +66,32 @@ router.post("/login", async (req, res) => {
 router.post("/verify", auth, async (req, res) => {
   try {
     const user = await UserModel.findOne({ _id: req.tokenData?._id });
+    user.password ="";
     res.json({ data: user });
   }
   catch (err) {
     res.status(500).json(err);
   }
 })
+
+router.put("/update", auth, async (req, res) => {
+  try {
+    const validateUser = validateUpdate(req.body)
+    if (validateUser.error) {
+      return res.status(400).json(validateUser.error.details);
+
+    }
+    const salt = await bcrypt.genSalt(10);
+    req.body.password = await bcrypt.hash(req.body.password, salt)
+    const user = await UserModel.updateOne({ _id: req.tokenData?._id }, req.body);
+    res.json(user);
+
+  }
+  catch (err) {
+    res.status(500).json(err);
+  }
+});
+
+router.put("/adminupdate", authAdmin, asycn(req, res))
 
 module.exports = router;
