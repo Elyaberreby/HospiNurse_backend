@@ -1,13 +1,19 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { validateUser, UserModel, validateLogin, genToken, validateUpdate } = require("../models/userModel");
+const { validateUser, UserModel, validateLogin, genToken, validateUpdate, validateAdmin } = require("../models/userModel");
 const { authUser, auth, authAdmin } = require("../middlewares/auth");
 const { valid } = require("joi");
 const router = express.Router();
 
-router.get("/", (req, res) => {
-  res.json({ msg: "Users work ****" });
+router.get("/", async (req, res) => {
+  try {
+    const users = await UserModel.find({});
+    res.json(users);
+  }
+  catch(err){
+    res.status(500).json(err);
+  }
 })
 
 //post
@@ -66,7 +72,18 @@ router.post("/login", async (req, res) => {
 router.post("/verify", auth, async (req, res) => {
   try {
     const user = await UserModel.findOne({ _id: req.tokenData?._id });
-    user.password ="";
+    user.password = "";
+    res.json({ data: user });
+  }
+  catch (err) {
+    res.status(500).json(err);
+  }
+});
+
+router.post("/verifyadmin", authAdmin, async (req, res) => {
+  try {
+    const user = await UserModel.findOne({ _id: req.tokenData?._id });
+    user.password = "";
     res.json({ data: user });
   }
   catch (err) {
@@ -91,7 +108,22 @@ router.put("/update", auth, async (req, res) => {
     res.status(500).json(err);
   }
 });
+// מאפשר למנהל לשנות פרטים של יוזרים
+router.put("/adminupdate/:id", authAdmin, async (req, res) => {
+  try {
+    const validate = validateAdmin(req.body);
+    if (validate.error) {
+      return res.status(400).json(validate.error.details);
+    }
+    const salt = await bcrypt.genSalt(10);
+    req.body.password = await bcrypt.hash(req.body.password, salt)
+    const user = await UserModel.updateOne({ _id: req.params.id }, req.body);
+    res.json(user);
 
-router.put("/adminupdate", authAdmin, asycn(req, res))
+  }
+  catch (err) {
+    res.status(500).json(err);
+  }
+})
 
 module.exports = router;
