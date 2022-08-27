@@ -22,6 +22,7 @@ exports.auth = (req, res, next) => {
 
 exports.authAdmin = async (req, res, next) => {
   let token = req.header("x-api-key");
+  console.log(token);
   if (!token) {
     return res.status(401).json({ err_msg: "need to send token to his endpoint url" })
   }
@@ -33,7 +34,7 @@ exports.authAdmin = async (req, res, next) => {
     if (!user) {
       return res.status(400).json({ err_msg: "there is no user" });
     }
-
+console.log(user);
     if (user?.role !== "admin") {
       return res.status(401).json({ err_msg: "need to be admin to continue" })
     }

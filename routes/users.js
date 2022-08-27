@@ -2,13 +2,24 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { validateUser, UserModel, validateLogin, genToken, validateUpdate, validateAdmin } = require("../models/userModel");
-const { authUser, auth, authAdmin } = require("../middlewares/auth");
+const { auth, authAdmin } = require("../middlewares/auth");
 const { valid } = require("joi");
 const router = express.Router();
-
+//   מקבל את כול היוזרים , לקבל את היוזרים 
 router.get("/", async (req, res) => {
   try {
     const users = await UserModel.find({});
+    res.json(users);
+  }
+  catch(err){
+    res.status(500).json(err);
+  }
+})
+
+// מחזיר את הפרטים על יוזר ספציפי
+router.get("/one/:id", async (req, res) => {
+  try {
+    const users = await UserModel.findOne({_id:req.params.id});
     res.json(users);
   }
   catch(err){
