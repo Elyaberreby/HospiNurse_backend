@@ -1,9 +1,9 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { validateUser, UserModel, validateLogin, genToken, validateUpdate, validateAdmin } = require("../models/userModel");
+const { validateUser, UserModel, validateLogin, genToken, validateUpdate, validateAdmin, validateCall } = require("../models/userModel");
 const { auth, authAdmin } = require("../middlewares/auth");
-const { valid } = require("joi");
+const { v4: uuidv4 } = require('uuid');
 const router = express.Router();
 //   מקבל את כול היוזרים , לקבל את היוזרים 
 router.get("/", async (req, res) => {
@@ -11,7 +11,7 @@ router.get("/", async (req, res) => {
     const users = await UserModel.find({});
     res.json(users);
   }
-  catch(err){
+  catch (err) {
     res.status(500).json(err);
   }
 })
@@ -19,10 +19,10 @@ router.get("/", async (req, res) => {
 // מחזיר את הפרטים על יוזר ספציפי
 router.get("/one/:id", async (req, res) => {
   try {
-    const users = await UserModel.findOne({_id:req.params.id});
+    const users = await UserModel.findOne({ _id: req.params.id });
     res.json(users);
   }
-  catch(err){
+  catch (err) {
     res.status(500).json(err);
   }
 })
@@ -135,6 +135,22 @@ router.put("/adminupdate/:id", authAdmin, async (req, res) => {
   catch (err) {
     res.status(500).json(err);
   }
-})
+});
+
+//ראוט שמאפשר להוסיף ליוזר קריאה 
+router.put("/addcall".  auth, async(req, res) => {
+  try{
+    const validate = validateCall(req.body);
+    if (validate.error) {
+      return res.status(400).json(validate.error.details);
+    }
+
+    const user = await UserModel.updateOne({ _id: req.tokenData?._id}, {$push: {calls: {callId: uuidv4(), ...req.body}}});
+    res.json(user);
+  }
+  catch (err) {
+    res.status(500).json(err);
+  }
+});
 
 module.exports = router;

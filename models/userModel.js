@@ -8,6 +8,10 @@ let userSchema = new mongoose.Schema({
     name: String,
     email: String,
     password: String,
+    calls: {
+        type: Array,
+        default: []
+    },
     room: {
         type: String,
         default: "0"
@@ -66,6 +70,13 @@ exports.validateAdmin = (_reqBody) => {
         password: Joi.string().min(3).max(100).required(),
         room: Joi.string().min(1).max(10).allow("", null),
         role: Joi.string().min(2).max(20).required()
+    })
+    return joiSchema.validate(_reqBody);
+}
+
+exports.validateCall = (_reqBody) => {
+    let joiSchema = Joi.object({
+        title: Joi.string().min(2).max(50).required()
     })
     return joiSchema.validate(_reqBody);
 }
