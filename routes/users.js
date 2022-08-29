@@ -138,18 +138,37 @@ router.put("/adminupdate/:id", authAdmin, async (req, res) => {
 });
 
 //ראוט שמאפשר להוסיף ליוזר קריאה 
-router.put("/addcall".  auth, async(req, res) => {
-  try{
+router.put("/addcall", auth, async (req, res) => {
+  try {
     const validate = validateCall(req.body);
     if (validate.error) {
       return res.status(400).json(validate.error.details);
     }
 
-    const user = await UserModel.updateOne({ _id: req.tokenData?._id}, {$push: {calls: {callId: uuidv4(), ...req.body}}});
+    //req.tokenData?._id = (האיידי שאנחנו מקבלים מהמידלוור 
+    //$push - מובנה במונגו, מאפשר לנו לדחופ תאים חדשים למערך 
+    // callsId - הוספנו שדה שנקרה ככה שמכיל איי די יחודי שמזהה כול קריאה וקריאה 
+    // uuidv4 - פאקדצ שהתקנו בשביל לייצר איי די יחודי 
+    // ... - דיסטרקטשיין זה מעתיק את התאים שבתוך האובייקט ומחזיר לנו את הערך שלהם
+    //req.body - אוביקט שמכיל בתוכו את הכותרת , במקרה שלנו האוביקט מכיל כותרת לקחנו את הערך שבכתורת והוספנו אותו למערך החדש
+
+    const user = await UserModel.updateOne({ _id: req.tokenData?._id }, { $push: { calls: { callId: uuidv4(), ...req.body } } });
     res.json(user);
   }
   catch (err) {
     res.status(500).json(err);
+  }
+});
+
+//להציג את הקריאות של היוזר
+router.put("/deletecall/:id", auth, async (req, res) => {
+  try {
+    const user = await UserModel.updateOne({ _id: req.tokenData?._id }, { $pull: { calls: { callId: req.params.id } } });
+    res.json(user);
+
+  }
+  catch (err) {
+    console.log(err);
   }
 });
 

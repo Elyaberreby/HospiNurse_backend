@@ -9,7 +9,6 @@ exports.auth = (req, res, next) => {
     return res.status(401).json({ err_msg: "need to send token to his endpoint url" })
   }
   try {
-
     let decodeToken = jwt.verify(token, config.tokenSecret);//בודק אם התוקן תקין 
     req.tokenData = decodeToken;
 
